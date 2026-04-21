@@ -5,7 +5,7 @@ WORKDIR /app
 RUN npm install -g bower
 
 COPY package.json package-lock.json* bower.json .bowerrc ./
-RUN npm install --maxsockets 10 --ignore-scripts && bower install --allow-root
+RUN ulimit -n 65536 && npm install --maxsockets 5 --ignore-scripts && bower install --allow-root
 
 COPY . .
 RUN npm run postinstall && \
@@ -16,7 +16,7 @@ FROM node:22.22.1-slim
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm install --omit=dev --maxsockets 10 --ignore-scripts && npm run postinstall
+RUN ulimit -n 65536 && npm install --omit=dev --maxsockets 5 --ignore-scripts && npm run postinstall
 
 COPY --from=builder /app/public_coco ./public_coco
 COPY --from=builder /app/bower_components ./bower_components
