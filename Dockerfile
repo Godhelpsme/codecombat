@@ -1,14 +1,11 @@
-FROM node:22.22.1-slim AS builder
+FROM node:22.22.1 AS builder
 
 WORKDIR /app
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends git python3 make g++ && \
-    npm install -g bower && \
-    rm -rf /var/lib/apt/lists/*
+RUN npm install -g bower
 
 COPY package.json package-lock.json* bower.json .bowerrc ./
-RUN npm ci --ignore-scripts && bower install --allow-root
+RUN npm install --maxsockets 10 --ignore-scripts && bower install --allow-root
 
 COPY . .
 RUN npm run postinstall && \
@@ -18,12 +15,8 @@ FROM node:22.22.1-slim
 
 WORKDIR /app
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends git && \
-    rm -rf /var/lib/apt/lists/*
-
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev --ignore-scripts && npm run postinstall
+RUN npm install --omit=dev --maxsockets 10 --ignore-scripts && npm run postinstall
 
 COPY --from=builder /app/public_coco ./public_coco
 COPY --from=builder /app/bower_components ./bower_components
